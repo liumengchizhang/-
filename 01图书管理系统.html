@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./lib/bootstrap.css">
+    <script src="./lib/jquery.js"></script>
+    <style>
+        .btnadd{
+            color: aliceblue;
+            background-color:deepskyblue;
+        }
+    </style>
+</head>
+<body style="padding: 20px;"> 
+    
+    <div class="panel panel-primary" >
+          <div class="panel-heading">
+                <h3 class="panel-title">添加新图书</h3>
+          </div>
+          <div class="panel-body form-inline" >
+            
+                <div class="input-group">
+                    <div class="input-group-addon">书名</div>
+                    <input type="text" class="form-name" id="exampleInputAmount" placeholder="请输入书名">
+                </div>
+                <div class="input-group">
+                    <div class="input-group-addon">作者</div>
+                    <input type="text" class="form-author" id="exampleInputAmount" placeholder="请输入作者名">
+                </div>
+                <div class="input-group">
+                    <div class="input-group-addon">出版社</div>
+                    <input type="text" class="form-publisher" id="exampleInputAmount" placeholder="请输入出版社">
+                </div>
+                <button class="btnadd">添加</button>
+            
+          </div>
+          <!-- 图书的表格 -->      
+    </div>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>书名</th>
+                <th>作者</th>
+                <th>出版社</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <script>
+      $(function(){
+        getBookList();
+        addBooklist();
+        delBooklist();
+
+        // 从数据库里面获取图书信息
+        function getBookList(){
+            $.get("http://192.168.0.116:9090/book/page",{
+                pageNum:1,
+                pageSize:10000
+            },function(e){
+                // console.log(e.data.records);
+                var bookArr =e.data.records
+                var row = [];
+                bookArr.forEach(function(item,i){
+                //   console.log(i);
+                //   console.log(item);
+                  row.push(`<tr>
+                          <td>${item.id}</td>
+                          <td>${item.name}</td>
+                          <td>${item.author}</td>
+                          <td>${item.publisher}</td>
+                          <td><a href="javaScript:;" data-id=${item.id}>删除</a></td>
+                        </tr>`);
+
+                });
+                $("tbody").empty().append(row);
+            })
+        }
+        // 添加图书信息
+        function addBooklist(){
+            $(".btnadd").on('click',function(){
+                if(($(".form-name").val().trim()=='')||($(".form-author").val().trim()=='')||($(".form-publisher").val().trim()=='')){
+                      return alert('请添加正确的图书信息');
+                }else{
+                    $.post('http://192.168.0.116:9090/book/save',
+                        {   
+                            "name": $(".form-name").val().trim(),
+                            "author":$(".form-author").val().trim(),
+                            "publisher":$(".form-publisher").val().trim(),
+                        },function(e){
+                            if(e.code!=1){
+                                return alert('添加失败');
+                            } else{
+                                console.log(e);
+                            }
+                    })
+                      getBookList();
+
+                }
+            
+                   
+            })
+          
+           
+
+        }
+        // 删除图书信息
+        
+        function delBooklist(){
+            
+            $("tbody").on("click","a",function(){
+                var id = $(this).attr("data-id");
+                console.log(id);
+                $.ajax({
+                type:'delete',
+                url:'http://192.168.0.116:9090/book/delete/'+id,
+                function(e){
+                    console.log(e);
+                }
+            })
+            getBookList();
+            })
+            
+        }
+      
+      })
+      </script>
+     
+</body>
+</html>
